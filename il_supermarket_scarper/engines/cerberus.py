@@ -173,7 +173,7 @@ class Cerberus(Engine):
             Logger.debug(f"Start persisting file {file_name}")
             temporary_gz_file_path = os.path.join(self.storage_path, file_name)
 
-            fetch_temporary_gz_file_from_ftp(
+            file_object = fetch_temporary_gz_file_from_ftp(
                 self.ftp_host,
                 self.ftp_username,
                 self.ftp_password,
@@ -185,9 +185,9 @@ class Cerberus(Engine):
 
             if ext == ".gz":
                 Logger.debug(
-                    f"File size is {os.path.getsize(temporary_gz_file_path)} bytes."
+                    f"File size is {file_object.get_file_size()} bytes."
                 )
-                extract_xml_file_from_gz_file(temporary_gz_file_path)
+                file_object = extract_xml_file_from_gz_file(file_object)
 
             Logger.debug(f"Done persisting file {file_name}")
             extract_succefully = True
@@ -204,7 +204,7 @@ class Cerberus(Engine):
                 os.remove(temporary_gz_file_path)
 
         return {
-            "file_name": file_name,
+            "file_name": file_object,
             "downloaded": downloaded,
             "extract_succefully": extract_succefully,
             "restart_and_retry": restart_and_retry,

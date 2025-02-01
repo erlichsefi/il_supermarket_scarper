@@ -126,5 +126,4 @@ class Bina(Aspx):
         url = spath[0]["SPath"]
         ext = file_link.split(".")[-1]
 
-        url_retrieve(url, file_save_path + "." + ext, timeout=timeout)
-        return file_save_path + "." + ext
+        return url_retrieve(url, file_save_path + "." + ext, timeout=timeout)

@@ -4,9 +4,9 @@ import os
 import io
 import zipfile
 from .exceptions import RestartSessionError
+from .file_types import File
 
-
-def extract_xml_file_from_gz_file(file_save_path):
+def extract_xml_file_from_gz_file(file_save_path:File):
     """extract xml from gz"""
     target_file_name = os.path.splitext(file_save_path)[0] + ".xml"
     try:
@@ -29,6 +29,9 @@ def extract_xml_file_from_gz_file(file_save_path):
 
     except Exception as exception:  # pylint: disable=broad-except
         report_failed_zip(exception, file_save_path, target_file_name)
+    finally:
+        os.remove(file_save_path)
+        return File(target_file_name)
 
 
 def report_failed_zip(exception, file_save_path, target_file_name):

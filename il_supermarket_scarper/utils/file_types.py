@@ -1,5 +1,5 @@
 from enum import Enum
-
+import os
 
 class FileTypesFilters(Enum):
     """type of files avaliable to download"""
@@ -95,3 +95,24 @@ class FileTypesFilters(Enum):
                 iterable,
             )
         )
+
+
+
+class SteamEntity:
+    
+    def __init__(self):
+        pass
+    
+    
+class File(SteamEntity):
+    
+    def __init__(self,file_path):
+        self.file_path = file_path
+        super().__init__()
+        
+    
+    def get_file_size(self):
+        return os.path.getsize(self.file_path)
+    
+    def from_type(self,ext):
+        return self.file_path.endswith(ext)

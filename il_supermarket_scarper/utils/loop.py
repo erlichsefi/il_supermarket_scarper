@@ -51,6 +51,7 @@ def run_tasks(
     function_to_execute,
     iterable,
     max_threads: int = None,
+    **kwargs
 ):
     """Run tasks in multi-thread or sequentially"""
     if max_threads:
@@ -58,7 +59,7 @@ def run_tasks(
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=max_threads, thread_name_prefix="PullingThread"
         ) as executor:
-            futures = [executor.submit(function_to_execute, arg) for arg in iterable]
+            futures = [executor.submit(function_to_execute, arg, **kwargs) for arg in iterable]
             return [
                 future.result() for future in concurrent.futures.as_completed(futures)
             ]

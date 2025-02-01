@@ -25,7 +25,7 @@ from requests.exceptions import (
 from .logger import Logger
 from .retry import retry
 from .file_cache import file_cache
-
+from .file_types import File
 
 exceptions = (
     URLError,
@@ -296,6 +296,7 @@ def url_retrieve(url, filename, timeout=30):
     if size >= 0 and read < size:
         msg = f"retrieval incomplete: got only {read:d} out of {size:d} bytes"
         raise ValueError(msg, (filename, _request.headers))
+    return File(filename)
 
 
 @url_connection_retry(60 * 5)
@@ -331,6 +332,7 @@ def fetch_temporary_gz_file_from_ftp(
         ftp.cwd(ftp_path)
         ftp.retrbinary("RETR " + file_name, file_ftp.write)
         ftp.quit()
+    return File(temporary_gz_file_path)
 
 
 def wget_file(file_link, file_save_path):
@@ -353,4 +355,4 @@ def wget_file(file_link, file_save_path):
         raise FileNotFoundError(
             f"File wasn't downloaded with wget,std_err is {std_err}"
         )
-    return file_save_path
+    return File(file_save_path)

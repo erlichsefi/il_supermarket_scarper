@@ -15,6 +15,7 @@ from il_supermarket_scarper.utils import (
     wget_file,
     RestartSessionError,
     DumpFolderNames,
+    File
 )
 
 
@@ -310,37 +311,37 @@ class Engine(ScraperStatus, ABC):
     @url_connection_retry()
     def retrieve_file(self, file_link, file_save_path, timeout=30):
         """download file"""
-        url_retrieve(file_link, file_save_path, timeout=timeout)
-        return file_save_path
+        return url_retrieve(file_link, file_save_path, timeout=timeout)
 
     def save_and_extract(self, arg):
         """download file and extract it"""
 
         file_link, file_name = arg
-        file_save_path = os.path.join(self.storage_path, file_name)
-        Logger.debug(f"Downloading {file_link} to {file_save_path}")
+        Logger.debug(f"Downloading {file_link} to {file_name}")
         (
+            file_object,
             downloaded,
             extract_succefully,
             error,
             restart_and_retry,
-        ) = self._save_and_extract(file_link, file_save_path)
+        ) = self._save_and_extract(file_link, self.storage_path, file_name)
 
         return {
-            "file_name": file_name,
+            "file_name": file_object,
             "downloaded": downloaded,
             "extract_succefully": extract_succefully,
             "error": error,
             "restart_and_retry": restart_and_retry,
         }
 
-    def _save_and_extract(self, file_link, file_save_path):
+    def _save_and_extract(self, file_link, storage_path,  file_name) -> File:
+        
         downloaded = False
         extract_succefully = False
         error = None
         restart_and_retry = False
         try:
-
+            file_save_path = os.path.join(storage_path, file_name)
             # add ext if possible
             if not (
                 file_save_path.endswith(".gz") or file_save_path.endswith(".xml")
@@ -351,19 +352,18 @@ class Engine(ScraperStatus, ABC):
 
             # try to download the file
             try:
-                file_save_path_with_ext = self.retrieve_file(file_link, file_save_path)
+                file_save_path_with_ext: File = self.retrieve_file(file_link, file_save_path)
             except Exception as e:  # pylint: disable=broad-except
                 Logger.warning(f"Error downloading {file_link}: {e}")
-                file_save_path_with_ext = wget_file(file_link, file_save_path)
+                file_save_path_with_ext: File = wget_file(file_link, file_save_path)
             downloaded = True
 
-            if file_save_path_with_ext.endswith("gz"):
+            if file_save_path_with_ext.from_type("gz"):
                 Logger.debug(
-                    f"File size is {os.path.getsize(file_save_path_with_ext)} bytes."
+                    f"File size is {file_save_path_with_ext.get_file_size()} bytes."
                 )
-                extract_xml_file_from_gz_file(file_save_path_with_ext)
+                file_save_path_with_ext:File = extract_xml_file_from_gz_file(file_save_path_with_ext)
 
-                os.remove(file_save_path_with_ext)
             extract_succefully = True
 
             Logger.debug(f"Done downloading {file_link}")
@@ -383,4 +383,4 @@ class Engine(ScraperStatus, ABC):
             Logger.error_execption(exception)
             error = str(exception)
 
-        return downloaded, extract_succefully, error, restart_and_retry
+        return file_save_path_with_ext, downloaded, extract_succefully, error, restart_and_retry
